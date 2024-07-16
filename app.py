@@ -108,9 +108,9 @@ def shop_list():
 
     shops_list = [
         {
-            "id": shop.id,
-            "shop_name": shop.shop_name,
-            "shop_image_url": shop.shop_image_url
+            "id": shop["id"],
+            "shop_name": shop["shop_name"],
+            "shop_image_url": shop["shop_image_url"]
         }
         for shop in shops
     ]
