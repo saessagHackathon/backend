@@ -1,6 +1,7 @@
 import json
 
 from flask import Flask, render_template, request, Response, jsonify
+from flask_cors import CORS
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.document_loaders import TextLoader
@@ -10,7 +11,7 @@ from retriever import make_retriever
 from shop_data import shop_data
 
 app = Flask(__name__)
-
+cors = CORS(app, resources={r"/api/*": {"origins": "https://port-0-backend-lydacqomf26e2cc7.sel5.cloudtype.app"}})
 shop_name = 'burgerking'
 
 # prompt
