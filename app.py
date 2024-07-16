@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, Response, jsonify
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.document_loaders import TextLoader
@@ -44,12 +44,23 @@ def hello_world():  # put application's code here
     return render_template('chat.html', filename='chat.html')
 
 
-@app.route('/chat', methods=["POST"])
-def input_post():  # put application's code here
+@app.route('/api/recieve_message', methods=["POST"])
+def recieve_message():  # put application's code here
 
-    user = request.json
-    print(f"user : {user}")
+    data = request.json
+    user = data.get('user_message', '')
 
+    text = input_message(user)
+    response = {
+        "success": True,
+        "llm_message": text['content'],
+        "message_order": text['order_number']
+    }
+
+    return jsonify(response)
+
+
+def input_message(user):
     demo_ephemeral_chat_history.add_user_message(user)
 
     # RAG docs 참조
@@ -62,7 +73,6 @@ def input_post():  # put application's code here
             "context": docs
         }
     )
-
     # AI 메세지 저장
     demo_ephemeral_chat_history.add_ai_message(content)
 
@@ -70,16 +80,53 @@ def input_post():  # put application's code here
     text = convert_to_json(content)
 
     # AI 메세지 출력
-    print(text['content'])
+    print(text)
 
-    # 주문 완료시 주문 완료 메세지와 함께 채팅 종료
-    if text['order'] == 'complete':
-        print('주문이 완료되었습니다. 즐거운 시간되세요!')
-        res = json.dumps('주문이 완료되었습니다!', ensure_ascii=False).encode('utf8')
-        return Response(res, content_type='application/json; charset=utf-8')
-    else:
-        res = json.dumps(text['content'], ensure_ascii=False).encode('utf8')
-        return Response(res, content_type='application/json; charset=utf-8')
+    return text
+
+
+@app.route('/api/shop_list', methods=["GET"])
+def shop_list():
+    shops = [
+        {
+            "id": 1,
+            "shop_name": "버거킹",
+            "shop_image_url": "http://example.com/imageA.jpg"
+        },
+        {
+            "id": 2,
+            "shop_name": "맥도날드",
+            "shop_image_url": "http://example.com/imageB.jpg"
+        },
+        {
+            "id": 3,
+            "shop_name": "메가커피",
+            "shop_image_url": "http://example.com/imageC.jpg"
+        }
+    ]
+
+    shops_list = [
+        {
+            "id": shop.id,
+            "shop_name": shop.shop_name,
+            "shop_image_url": shop.shop_image_url
+        }
+        for shop in shops
+    ]
+    return jsonify(shops_list)
+
+
+@app.route('/api/shop_list/<int:shop_id>', methods=['GET'])
+def get_shop_details(shop_id):
+    text = input_message("음식을 주문하고 싶어")
+
+    response = {
+        "success": True,
+        "llm_message": text['content'],
+        "message_order": text['order_number']
+    }
+
+    return jsonify(response)
 
 
 if __name__ == '__main__':
