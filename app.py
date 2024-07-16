@@ -13,9 +13,6 @@ from shop_data import shop_data
 app = Flask(__name__)
 
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
-
-
 shop_name = 'burgerking'
 
 # prompt
