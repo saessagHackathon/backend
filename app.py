@@ -11,7 +11,11 @@ from retriever import make_retriever
 from shop_data import shop_data
 
 app = Flask(__name__)
-cors = CORS(app, resources={r"/api/*": {"origins": "https://port-0-backend-lydacqomf26e2cc7.sel5.cloudtype.app"}})
+
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
+
 shop_name = 'burgerking'
 
 # prompt
