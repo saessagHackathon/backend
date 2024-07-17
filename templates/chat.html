@@ -138,7 +138,7 @@
         } else {
             displayUserMessage(userMessage);
             scrollToBottom(messagesContainer);
-            fetch("/chat", {
+            fetch("/api/recieve_message", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

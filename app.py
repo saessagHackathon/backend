@@ -5,6 +5,7 @@ from flask_cors import CORS
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.document_loaders import TextLoader
+import logging
 
 from model import llm
 from retriever import make_retriever
@@ -50,6 +51,7 @@ def hello_world():  # put application's code here
 def recieve_message():  # put application's code here
 
     data = request.json
+
     user = data.get('user_message', '')
 
     text = input_message(user)
@@ -90,6 +92,7 @@ def input_message(user):
 
 @app.route('/api/shop_list', methods=["GET"])
 def shop_list():
+    print("/api/shop_list")
     shops = [
         {
             "id": 1,
@@ -121,6 +124,7 @@ def shop_list():
 
 @app.route('/api/shop_list/<int:shop_id>', methods=['GET'])
 def get_shop_details(shop_id):
+    print("/api/shop_list/<int:shop_id>")
     text = input_message("음식을 주문하고 싶어")
 
     response = {
@@ -133,6 +137,7 @@ def get_shop_details(shop_id):
 
 @app.route('/api/<shop_name>/menu/<string:menu_id>', methods=['GET'])
 def get_menu_details(shop_name, menu_id):
+    print("/api/<shop_name>/menu/<string:menu_id>")
     if menu_id == "main":
         menus = [
             {
@@ -252,6 +257,7 @@ def get_menu_details(shop_name, menu_id):
 
 @app.route('/api/<shop_name>/menu/<string:menu_id>/<menu_name>', methods=['GET'])
 def get_menu_order(shop_name, menu_id, menu_name):
+    print("/api/<shop_name>/menu/<string:menu_id>/<menu_name>")
     text = input_message(f"{menu_name}을 주문하고 싶어")
 
     response = {
@@ -265,6 +271,7 @@ def get_menu_order(shop_name, menu_id, menu_name):
 
 @app.route('/api/<shop_name>/order_list', methods=['GET'])
 def get_final_orderlist(shop_name):
+    print("/api/<shop_name>/order_list")
     order_response = {
         "order_list": [
             {
