@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, render_template, request, Response, jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.chat_message_histories import ChatMessageHistory
@@ -66,6 +66,7 @@ def input_message(user):
     demo_ephemeral_chat_history.add_user_message(user)
 
     # RAG docs 참조
+    #docs = rag.invoke(user, embeddings)  # RAG 모델에 질의와 임베딩 전달
     docs = rag.invoke(user)
 
     # AI 메세지 생성
@@ -129,6 +130,175 @@ def get_shop_details(shop_id):
     }
 
     return jsonify(response)
+
+@app.route('/api/<shop_name>/menu/<string:menu_id>', methods=['GET'])
+def get_menu_details(shop_name, menu_id):
+    if menu_id == "main":
+        menus = [
+            {
+                "id": 1,
+                "menu_name": "불고기 버거",
+                "menu_price": "10000",
+                "menu_image_url": "http://example.com/images/불고기버거.jpg",
+                "menu_type": "main",
+                "menu_tag": [
+                    {
+                        "tag_id": "1",
+                        "tag_content": "불고기 패티"
+                    },
+                    {
+                        "tag_id": "2",
+                        "tag_content": "달달함"
+                    }
+                ],
+            },
+            {
+                "id": 2,
+                "menu_name": "치즈 버거",
+                "menu_price": "5000",
+                "menu_image_url": "http://example.com/images/치즈버거버거.jpg",
+                "menu_type": "main",
+                "menu_tag": [
+                    {
+                        "tag_id": "1",
+                        "tag_content": "치즈 패티"
+                    },
+                    {
+                        "tag_id": "2",
+                        "tag_content": "느끼함"
+                    }
+                ],
+            }
+        ]
+    elif menu_id == "side":
+        menus = [
+            {
+                "id": 1,
+                "menu_name": "감자튀김",
+                "menu_price": "2000",
+                "menu_image_url": "http://example.com/images/감자튀김.jpg",
+                "menu_type": "side",
+                "menu_tag": [
+                    {
+                        "tag_id": "1",
+                        "tag_content": "감자"
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "menu_name": "치즈스틱",
+                "menu_price": "2500",
+                "menu_image_url": "http://example.com/images/치즈스틱.jpg",
+                "menu_type": "side",
+                "menu_tag": [
+                    {
+                        "tag_id": "1",
+                        "tag_content": "모자렐라"
+                    }
+                ]
+            }
+        ]
+    elif menu_id == "drink":
+        menus = [
+            {
+                "id": 1,
+                "menu_name": "콜라",
+                "menu_price": "1500",
+                "menu_image_url": "http://example.com/images/콜라.jpg",
+                "menu_type": "drink",
+                "menu_tag": [
+                    {
+                        "tag_id": "1",
+                        "tag_content": "설탕 제로"
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "menu_name": "사이다",
+                "menu_price": "1500",
+                "menu_image_url": "http://example.com/images/사이다.jpg",
+                "menu_type": "drink",
+                "menu_tag": [
+                    {
+                        "tag_id": "1",
+                        "tag_content": "설탕 제로"
+                    }
+                ]
+            }
+        ]
+
+    menu_list = [
+        {
+            "id": menu["id"],
+            "menu_name": menu["menu_name"],
+            "menu_price": menu["menu_price"],
+            "menu_image_url": menu["menu_image_url"],
+            "menu_type": menu["menu_type"],
+            "menu_tag": [
+                {
+                    "tag_id": tag["tag_id"],
+                    "tag_content": tag["tag_content"]
+                }
+                for tag in menu["menu_tag"]
+            ]
+        }
+        for menu in menus
+    ]
+
+    return jsonify(menu_list)
+
+
+@app.route('/api/<shop_name>/menu/<string:menu_id>/<menu_name>', methods=['GET'])
+def get_menu_order(shop_name, menu_id, menu_name):
+    text = input_message(f"{menu_name}을 주문하고 싶어")
+
+    response = {
+        "success": True,
+        "llm_message": text['content'],
+        "message_order": text['order_number']
+    }
+
+    return jsonify(response)
+
+
+@app.route('/api/<shop_name>/order_list', methods=['GET'])
+def get_final_orderlist(shop_name):
+    order_response = {
+        "order_list": [
+            {
+                "menu_type": "main",
+                "menu_name": "불고기 버거",
+                "menu_price": "10000",
+                "menu_num": "1",
+                "menu_image_url": "http://example.com/images/불고기버거.jpg"
+            },
+            {
+                "menu_type": "side",
+                "menu_name": "치킨너겟 4조각",
+                "menu_price": "3800",
+                "menu_num": "1",
+                "menu_image_url": "http://example.com/images/치킨너겟.jpg"
+            },
+            {
+                "menu_type": "side",
+                "menu_name": "상하이 치킨랩",
+                "menu_price": "5500",
+                "menu_num": "2",
+                "menu_image_url": "http://example.com/images/상하이치킨랩.jpg"
+            },
+            {
+                "menu_type": "drink",
+                "menu_name": "콜라",
+                "menu_price": "2000",
+                "menu_num": "1",
+                "menu_image_url": "http://example.com/images/콜라.jpg"
+            }
+        ],
+        "total_price": "26800"
+    }
+    return jsonify(order_response)
 
 
 if __name__ == '__main__':

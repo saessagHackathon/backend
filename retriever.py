@@ -1,5 +1,6 @@
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.embeddings.openai import OpenAIEmbeddings
+#from langchain_community.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 
 from model import API_KEY
