@@ -58,7 +58,8 @@ def recieve_message():  # put application's code here
     response = {
         "success": True,
         "llm_message": text['content'],
-        "message_order": text['order_number']
+        "message_order": text['order_number'],
+        "order": text['order']
     }
 
     return jsonify(response)
@@ -130,7 +131,8 @@ def get_shop_details(shop_id):
     response = {
         "success": True,
         "llm_message": text['content'],
-        "message_order": text['order_number']
+        "message_order": text['order_number'],
+        "order": text['order']
     }
 
     return jsonify(response)
@@ -263,7 +265,8 @@ def get_menu_order(shop_name, menu_id, menu_name):
     response = {
         "success": True,
         "llm_message": text['content'],
-        "message_order": text['order_number']
+        "message_order": text['order_number'],
+        "order": text['order']
     }
 
     return jsonify(response)
