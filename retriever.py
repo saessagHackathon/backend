@@ -1,12 +1,13 @@
 from langchain.text_splitter import CharacterTextSplitter
-#from langchain_community.embeddings.openai import OpenAIEmbeddings
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
+# from langchain_community.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 from model import API_KEY
 
 
 def make_retriever(data):
+
     text_splitter = CharacterTextSplitter(
         separator='\n',
         chunk_size=100,

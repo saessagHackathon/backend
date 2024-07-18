@@ -5,8 +5,8 @@ from flask_cors import CORS
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.document_loaders import TextLoader
-import logging
 
+from MenuController import MenuController, menu
 from model import llm
 from retriever import make_retriever
 from shop_data import shop_data
@@ -14,6 +14,9 @@ from shop_data import shop_data
 app = Flask(__name__)
 
 cors = CORS(app)
+
+app.register_blueprint(menu)
+
 shop_name = 'burgerking'
 
 # prompt
@@ -46,7 +49,7 @@ def convert_to_json(content):
 def hello_world():  # put application's code here
     return render_template('chat.html', filename='chat.html')
 
-
+# 1번 api - LLM에게 사용자 입력 전달 후 답변 받기
 @app.route('/api/recieve_message', methods=["POST"])
 def recieve_message():  # put application's code here
 
@@ -90,39 +93,7 @@ def input_message(user):
 
     return text
 
-
-@app.route('/api/shop_list', methods=["GET"])
-def shop_list():
-    print("/api/shop_list")
-    shops = [
-        {
-            "id": 1,
-            "shop_name": "버거킹",
-            "shop_image_url": "http://example.com/imageA.jpg"
-        },
-        {
-            "id": 2,
-            "shop_name": "맥도날드",
-            "shop_image_url": "http://example.com/imageB.jpg"
-        },
-        {
-            "id": 3,
-            "shop_name": "메가커피",
-            "shop_image_url": "http://example.com/imageC.jpg"
-        }
-    ]
-
-    shops_list = [
-        {
-            "id": shop["id"],
-            "shop_name": shop["shop_name"],
-            "shop_image_url": shop["shop_image_url"]
-        }
-        for shop in shops
-    ]
-    return jsonify(shops_list)
-
-
+# 3번 api - 사용자가 선택한 가게 id 전달
 @app.route('/api/shop_list/<int:shop_id>', methods=['GET'])
 def get_shop_details(shop_id):
     print("/api/shop_list/<int:shop_id>")
@@ -137,128 +108,10 @@ def get_shop_details(shop_id):
 
     return jsonify(response)
 
-@app.route('/api/<shop_name>/menu/<string:menu_id>', methods=['GET'])
-def get_menu_details(shop_name, menu_id):
-    print("/api/<shop_name>/menu/<string:menu_id>")
-    if menu_id == "main":
-        menus = [
-            {
-                "id": 1,
-                "menu_name": "불고기 버거",
-                "menu_price": "10000",
-                "menu_image_url": "http://example.com/images/불고기버거.jpg",
-                "menu_type": "main",
-                "menu_tag": [
-                    {
-                        "tag_id": "1",
-                        "tag_content": "불고기 패티"
-                    },
-                    {
-                        "tag_id": "2",
-                        "tag_content": "달달함"
-                    }
-                ],
-            },
-            {
-                "id": 2,
-                "menu_name": "치즈 버거",
-                "menu_price": "5000",
-                "menu_image_url": "http://example.com/images/치즈버거버거.jpg",
-                "menu_type": "main",
-                "menu_tag": [
-                    {
-                        "tag_id": "1",
-                        "tag_content": "치즈 패티"
-                    },
-                    {
-                        "tag_id": "2",
-                        "tag_content": "느끼함"
-                    }
-                ],
-            }
-        ]
-    elif menu_id == "side":
-        menus = [
-            {
-                "id": 1,
-                "menu_name": "감자튀김",
-                "menu_price": "2000",
-                "menu_image_url": "http://example.com/images/감자튀김.jpg",
-                "menu_type": "side",
-                "menu_tag": [
-                    {
-                        "tag_id": "1",
-                        "tag_content": "감자"
-                    }
-                ]
-            },
-            {
-                "id": 2,
-                "menu_name": "치즈스틱",
-                "menu_price": "2500",
-                "menu_image_url": "http://example.com/images/치즈스틱.jpg",
-                "menu_type": "side",
-                "menu_tag": [
-                    {
-                        "tag_id": "1",
-                        "tag_content": "모자렐라"
-                    }
-                ]
-            }
-        ]
-    elif menu_id == "drink":
-        menus = [
-            {
-                "id": 1,
-                "menu_name": "콜라",
-                "menu_price": "1500",
-                "menu_image_url": "http://example.com/images/콜라.jpg",
-                "menu_type": "drink",
-                "menu_tag": [
-                    {
-                        "tag_id": "1",
-                        "tag_content": "설탕 제로"
-                    }
-                ]
-            },
-            {
-                "id": 2,
-                "menu_name": "사이다",
-                "menu_price": "1500",
-                "menu_image_url": "http://example.com/images/사이다.jpg",
-                "menu_type": "drink",
-                "menu_tag": [
-                    {
-                        "tag_id": "1",
-                        "tag_content": "설탕 제로"
-                    }
-                ]
-            }
-        ]
 
-    menu_list = [
-        {
-            "id": menu["id"],
-            "menu_name": menu["menu_name"],
-            "menu_price": menu["menu_price"],
-            "menu_image_url": menu["menu_image_url"],
-            "menu_type": menu["menu_type"],
-            "menu_tag": [
-                {
-                    "tag_id": tag["tag_id"],
-                    "tag_content": tag["tag_content"]
-                }
-                for tag in menu["menu_tag"]
-            ]
-        }
-        for menu in menus
-    ]
-
-    return jsonify(menu_list)
-
-
-@app.route('/api/<shop_name>/menu/<string:menu_id>/<menu_name>', methods=['GET'])
-def get_menu_order(shop_name, menu_id, menu_name):
+# 5번 api - 사용자가 선택한 메뉴 id 및 메뉴 타입 전달(사용자가 음성이 아닌 터치 등으로 직접 선택시)
+@app.route('/api/<shop_name>/menu/<string:menu_type>/<menu_name>', methods=['GET'])
+def get_menu_order(shop_name, menu_type, menu_name):
     print("/api/<shop_name>/menu/<string:menu_id>/<menu_name>")
     text = input_message(f"{menu_name}을 주문하고 싶어")
 
@@ -271,9 +124,10 @@ def get_menu_order(shop_name, menu_id, menu_name):
 
     return jsonify(response)
 
-
+# 7번 api - 최종 주문서 받아오기
 @app.route('/api/<shop_name>/order_list', methods=['GET'])
 def get_final_orderlist(shop_name):
+
     print("/api/<shop_name>/order_list")
     order_response = {
         "order_list": [
@@ -311,5 +165,5 @@ def get_final_orderlist(shop_name):
     return jsonify(order_response)
 
 
-if __name__ == '__main__':
-    app.run()
+'''if __name__ == '__main__':
+    app.run()'''
