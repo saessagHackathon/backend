@@ -9,7 +9,7 @@ load_dotenv()
 
 API_KEY = os.environ.get('API_KEY')
 llm = ChatOpenAI(
-    model='gpt-4o',
+    model='gpt-4o-mini',
     api_key=API_KEY
 )
 

@@ -6,7 +6,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.document_loaders import TextLoader
 
-from MenuController import MenuController, menu
+from MenuController import menu
 from model import llm
 from retriever import make_retriever
 from shop_data import shop_data
@@ -31,12 +31,10 @@ demo_ephemeral_chat_history = ChatMessageHistory()
 
 # 모델 정의
 document_chain = create_stuff_documents_chain(llm, shop_prompt)
-
 # retriever 정의
 loader = TextLoader(shop_db, encoding="utf-8")
 data = loader.load()
 rag = make_retriever(data)
-
 
 def convert_to_json(content):
     text_split = content[8:].replace('`', "").strip()
@@ -49,13 +47,16 @@ def convert_to_json(content):
 def hello_world():  # put application's code here
     return render_template('chat.html', filename='chat.html')
 
+
 # 1번 api - LLM에게 사용자 입력 전달 후 답변 받기
 @app.route('/api/recieve_message', methods=["POST"])
 def recieve_message():  # put application's code here
 
-    data = request.json
+    data1 = request.json
 
-    user = data.get('user_message', '')
+    user = data1.get('user_message', '')
+    if len(user) > 300:
+        user = user[:300]
 
     text = input_message(user)
     response = {
@@ -72,7 +73,7 @@ def input_message(user):
     demo_ephemeral_chat_history.add_user_message(user)
 
     # RAG docs 참조
-    #docs = rag.invoke(user, embeddings)  # RAG 모델에 질의와 임베딩 전달
+    # docs = rag.invoke(user, embeddings)  # RAG 모델에 질의와 임베딩 전달
     docs = rag.invoke(user)
 
     # AI 메세지 생성
@@ -92,6 +93,7 @@ def input_message(user):
     print(text)
 
     return text
+
 
 # 3번 api - 사용자가 선택한 가게 id 전달
 @app.route('/api/shop_list/<int:shop_id>', methods=['GET'])
@@ -124,10 +126,10 @@ def get_menu_order(shop_name, menu_type, menu_name):
 
     return jsonify(response)
 
+
 # 7번 api - 최종 주문서 받아오기
 @app.route('/api/<shop_name>/order_list', methods=['GET'])
 def get_final_orderlist(shop_name):
-
     print("/api/<shop_name>/order_list")
     order_response = {
         "order_list": [
